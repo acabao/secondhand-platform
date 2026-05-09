@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springboot.ylw.mapper.PickupPointMapper">
+
+    <select id="selectActive" resultType="com.springboot.ylw.entity.PickupPoint">
+        SELECT * FROM pickup_point WHERE status = 1 ORDER BY sort ASC, id ASC
+    </select>
+
+    <select id="selectAll" resultType="com.springboot.ylw.entity.PickupPoint">
+        SELECT * FROM pickup_point ORDER BY sort ASC, id ASC
+    </select>
+
+    <select id="selectById" resultType="com.springboot.ylw.entity.PickupPoint">
+        SELECT * FROM pickup_point WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO pickup_point (name, address, description, hours, sort, status)
+        VALUES (#{name}, #{address}, #{description}, #{hours}, COALESCE(#{sort}, 0), COALESCE(#{status}, 1))
+    </insert>
+
+    <update id="update">
+        UPDATE pickup_point
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="hours != null">hours = #{hours},</if>
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM pickup_point WHERE id = #{id}
+    </delete>
+
+</mapper>

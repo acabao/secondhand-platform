@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springboot.ylw.mapper.CommunityPostMapper">
+
+    <resultMap id="PostWithUser" type="com.springboot.ylw.entity.CommunityPost">
+        <id      property="id"           column="id" />
+        <result  property="userId"       column="user_id" />
+        <result  property="type"         column="type" />
+        <result  property="title"        column="title" />
+        <result  property="description"  column="description" />
+        <result  property="images"       column="images" />
+        <result  property="wantItem"     column="want_item" />
+        <result  property="location"     column="location" />
+        <result  property="contact"      column="contact" />
+        <result  property="status"       column="status" />
+        <result  property="viewCount"    column="view_count" />
+        <result  property="replyCount"   column="reply_count" />
+        <result  property="createTime"   column="create_time" />
+        <result  property="updateTime"   column="update_time" />
+        <result  property="userNickname" column="user_nickname" />
+        <result  property="userAvatar"   column="user_avatar" />
+    </resultMap>
+
+    <sql id="joinUser">
+        LEFT JOIN `user` u ON u.id = p.user_id
+    </sql>
+
+    <sql id="selectCols">
+        p.*, u.nickname AS user_nickname, u.avatar AS user_avatar
+    </sql>
+
+    <select id="search" resultMap="PostWithUser">
+        SELECT <include refid="selectCols"/>
+        FROM community_post p
+        <include refid="joinUser"/>
+        <where>
+            <if test="type != null">AND p.type = #{type}</if>
+            <if test="status != null">AND p.status = #{status}</if>
+            <if test="keyword != null and keyword != ''">
+                AND (p.title LIKE CONCAT('%', #{keyword}, '%')
+                     OR p.description LIKE CONCAT('%', #{keyword}, '%')
+                     OR p.location LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY p.create_time DESC
+    </select>
+
+    <select id="selectById" resultMap="PostWithUser">
+        SELECT <include refid="selectCols"/>
+        FROM community_post p
+        <include refid="joinUser"/>
+        WHERE p.id = #{id}
+    </select>
+
+    <select id="selectByUserId" resultMap="PostWithUser">
+        SELECT <include refid="selectCols"/>
+        FROM community_post p
+        <include refid="joinUser"/>
+        WHERE p.user_id = #{userId}
+        ORDER BY p.create_time DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO community_post
+        (user_id, type, title, description, images, want_item, location, contact, status)
+        VALUES
+        (#{userId}, #{type}, #{title}, #{description}, #{images}, #{wantItem}, #{location}, #{contact},
+         COALESCE(#{status}, 1))
+    </insert>
+
+    <update id="update">
+        UPDATE community_post
+        <set>
+            <if test="type != null">type = #{type},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="images != null">images = #{images},</if>
+            <if test="wantItem != null">want_item = #{wantItem},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="contact != null">contact = #{contact},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE community_post SET status = #{status} WHERE id = #{id}
+    </update>
+
+    <update id="incrViewCount">
+        UPDATE community_post SET view_count = view_count + 1 WHERE id = #{id}
+    </update>
+
+    <update id="incrReplyCount">
+        UPDATE community_post SET reply_count = reply_count + #{delta} WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM community_post WHERE id = #{id}
+    </delete>
+
+</mapper>

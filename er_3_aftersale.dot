@@ -1,0 +1,95 @@
+// ===========================================================
+// ER 图 模块 3：售后与评价
+// 实体：用户 / 商品 / 订单 / 退款申请 / 交易评价
+// 渲染： dot -Kneato -Tpng -Gcharset=utf8 er_3_aftersale.dot -o er_3_aftersale.png
+// ===========================================================
+graph ER_Aftersale {
+    graph [fontname="Microsoft YaHei", layout=neato, overlap=false,
+           splines=true, sep="+14,14"];
+    node  [fontname="Microsoft YaHei", fontsize=12];
+    edge  [fontname="Microsoft YaHei", fontsize=11, len=1.4];
+
+    // ===== 实体 =====
+    node [shape=box, penwidth=1.6, width=1.4, height=0.6];
+    user   [label="用户"];
+    goods  [label="商品"];
+    ord    [label="订单"];
+    refund [label="退款申请"];
+    review [label="交易评价"];
+
+    // ===== 属性 =====
+    node [shape=ellipse, penwidth=1];
+    u_id    [label="id"];
+    u_uname [label="用户名"];
+    user -- u_id;
+    user -- u_uname;
+
+    g_id    [label="id"];
+    g_title [label="标题"];
+    g_price [label="价格"];
+    goods -- g_id;
+    goods -- g_title;
+    goods -- g_price;
+
+    o_id     [label="id"];
+    o_no     [label="订单号"];
+    o_price  [label="价格"];
+    o_status [label="状态"];
+    ord -- o_id;
+    ord -- o_no;
+    ord -- o_price;
+    ord -- o_status;
+
+    rf_id       [label="id"];
+    rf_amt      [label="金额"];
+    rf_reason   [label="原因"];
+    rf_status   [label="状态"];
+    rf_apply    [label="申请时间"];
+    rf_deadline [label="截止时间"];
+    rf_reply    [label="卖家回复"];
+    rf_note     [label="管理员说明"];
+    refund -- rf_id;
+    refund -- rf_amt;
+    refund -- rf_reason;
+    refund -- rf_status;
+    refund -- rf_apply;
+    refund -- rf_deadline;
+    refund -- rf_reply;
+    refund -- rf_note;
+
+    rv_id      [label="id"];
+    rv_role    [label="角色"];
+    rv_s1      [label="维度1评分"];
+    rv_s2      [label="维度2评分"];
+    rv_s3      [label="维度3评分"];
+    rv_overall [label="总分"];
+    rv_content [label="内容"];
+    rv_default [label="默认好评"];
+    review -- rv_id;
+    review -- rv_role;
+    review -- rv_s1;
+    review -- rv_s2;
+    review -- rv_s3;
+    review -- rv_overall;
+    review -- rv_content;
+    review -- rv_default;
+
+    // ===== 关系 =====
+    node [shape=diamond, penwidth=1.6, width=1.2, height=0.7];
+    r_apply   [label="申请"];
+    r_submit  [label="买家提交"];
+    r_handle  [label="卖家处理"];
+    r_makerev [label="产生"];
+    r_write   [label="撰写"];
+    r_recv    [label="收到"];
+    r_relate  [label="关联"];
+
+    ord  -- r_apply  [label="1"]; r_apply  -- refund [label="1"];
+    user -- r_submit [label="1"]; r_submit -- refund [label="N"];
+    user -- r_handle [label="1"]; r_handle -- refund [label="N"];
+
+    ord   -- r_makerev [label="1"]; r_makerev -- review [label="N"];
+    user  -- r_write   [label="1"]; r_write   -- review [label="N"];
+    user  -- r_recv    [label="1"]; r_recv    -- review [label="N"];
+    goods -- r_relate  [label="1"]; r_relate  -- review [label="N"];
+}

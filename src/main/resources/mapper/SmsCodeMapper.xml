@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springboot.ylw.mapper.SmsCodeMapper">
+
+    <resultMap id="BaseResultMap" type="com.springboot.ylw.entity.SmsCode">
+        <id column="id" property="id"/>
+        <result column="phone" property="phone"/>
+        <result column="code" property="code"/>
+        <result column="purpose" property="purpose"/>
+        <result column="expire_time" property="expireTime"/>
+        <result column="used" property="used"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sms_code (phone, code, purpose, expire_time, used)
+        VALUES (#{phone}, #{code}, #{purpose}, #{expireTime}, 0)
+    </insert>
+
+    <select id="selectLatest" resultMap="BaseResultMap">
+        SELECT * FROM sms_code
+        WHERE phone = #{phone} AND purpose = #{purpose}
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
+
+    <select id="countRecent" resultType="int">
+        SELECT COUNT(*) FROM sms_code
+        WHERE phone = #{phone} AND create_time &gt;= #{since}
+    </select>
+
+    <select id="selectValid" resultMap="BaseResultMap">
+        SELECT * FROM sms_code
+        WHERE phone = #{phone}
+          AND code = #{code}
+          AND purpose = #{purpose}
+          AND used = 0
+          AND expire_time &gt; #{now}
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
+
+    <update id="markUsed">
+        UPDATE sms_code SET used = 1 WHERE id = #{id}
+    </update>
+
+</mapper>

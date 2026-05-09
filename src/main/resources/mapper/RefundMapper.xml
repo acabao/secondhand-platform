@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springboot.ylw.mapper.RefundMapper">
+
+    <resultMap id="BaseResultMap" type="com.springboot.ylw.entity.Refund">
+        <id column="id" property="id"/>
+        <result column="order_id" property="orderId"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="buyer_id" property="buyerId"/>
+        <result column="seller_id" property="sellerId"/>
+        <result column="amount" property="amount"/>
+        <result column="reason" property="reason"/>
+        <result column="images" property="images"/>
+        <result column="status" property="status"/>
+        <result column="seller_reply" property="sellerReply"/>
+        <result column="admin_note" property="adminNote"/>
+        <result column="apply_time" property="applyTime"/>
+        <result column="seller_respond_time" property="sellerRespondTime"/>
+        <result column="arbitrate_time" property="arbitrateTime"/>
+        <result column="admin_respond_time" property="adminRespondTime"/>
+        <result column="refund_time" property="refundTime"/>
+        <result column="deadline" property="deadline"/>
+        <result column="goods_title" property="goodsTitle"/>
+        <result column="goods_image" property="goodsImage"/>
+        <result column="buyer_name" property="buyerName"/>
+        <result column="seller_name" property="sellerName"/>
+    </resultMap>
+
+    <sql id="JoinedCols">
+        r.*,
+        g.title  AS goods_title,
+        g.images AS goods_image,
+        b.nickname AS buyer_name,
+        s.nickname AS seller_name
+    </sql>
+
+    <sql id="JoinedFrom">
+        FROM `refund` r
+        LEFT JOIN `order` o ON o.id = r.order_id
+        LEFT JOIN `goods` g ON g.id = o.goods_id
+        LEFT JOIN `user`  b ON b.id = r.buyer_id
+        LEFT JOIN `user`  s ON s.id = r.seller_id
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="JoinedCols"/>
+        <include refid="JoinedFrom"/>
+        WHERE r.id = #{id}
+    </select>
+
+    <select id="selectByOrderId" resultMap="BaseResultMap">
+        SELECT <include refid="JoinedCols"/>
+        <include refid="JoinedFrom"/>
+        WHERE r.order_id = #{orderId}
+    </select>
+
+    <select id="selectByBuyer" resultMap="BaseResultMap">
+        SELECT <include refid="JoinedCols"/>
+        <include refid="JoinedFrom"/>
+        WHERE r.buyer_id = #{buyerId}
+        ORDER BY r.apply_time DESC
+    </select>
+
+    <select id="selectBySeller" resultMap="BaseResultMap">
+        SELECT <include refid="JoinedCols"/>
+        <include refid="JoinedFrom"/>
+        WHERE r.seller_id = #{sellerId}
+        ORDER BY r.apply_time DESC
+    </select>
+
+    <select id="selectArbitrating" resultMap="BaseResultMap">
+        SELECT <include refid="JoinedCols"/>
+        <include refid="JoinedFrom"/>
+        WHERE r.status = 3
+        ORDER BY r.arbitrate_time ASC
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="JoinedCols"/>
+        <include refid="JoinedFrom"/>
+        ORDER BY r.apply_time DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `refund` (order_id, order_no, buyer_id, seller_id, amount, reason, images, status, deadline)
+        VALUES (#{orderId}, #{orderNo}, #{buyerId}, #{sellerId}, #{amount}, #{reason}, #{images}, 0, #{deadline})
+    </insert>
+
+    <update id="sellerAgree">
+        UPDATE `refund` SET status = 1, seller_respond_time = #{respondTime}
+        WHERE id = #{id} AND status = 0
+    </update>
+
+    <update id="sellerReject">
+        UPDATE `refund` SET status = 2, seller_reply = #{reply}, seller_respond_time = #{respondTime}
+        WHERE id = #{id} AND status = 0
+    </update>
+
+    <update id="applyArbitrate">
+        UPDATE `refund` SET status = 3, arbitrate_time = #{arbitrateTime}
+        WHERE id = #{id} AND status = 2
+    </update>
+
+    <update id="adminAgree">
+        UPDATE `refund` SET status = 4, admin_note = #{note}, admin_respond_time = #{respondTime}
+        WHERE id = #{id} AND status = 3
+    </update>
+
+    <update id="adminReject">
+        UPDATE `refund` SET status = 5, admin_note = #{note}, admin_respond_time = #{respondTime}
+        WHERE id = #{id} AND status = 3
+    </update>
+
+    <update id="markRefunded">
+        UPDATE `refund` SET status = 6, refund_time = #{refundTime}
+        WHERE id = #{id} AND status IN (1, 4)
+    </update>
+
+</mapper>

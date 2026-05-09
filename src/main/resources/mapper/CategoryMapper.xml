@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springboot.ylw.mapper.CategoryMapper">
+
+    <select id="selectAll" resultType="com.springboot.ylw.entity.Category">
+        SELECT * FROM category WHERE status = 1 ORDER BY sort ASC
+    </select>
+
+    <select id="selectAllAdmin" resultType="com.springboot.ylw.entity.Category">
+        SELECT * FROM category ORDER BY sort ASC
+    </select>
+
+    <select id="selectById" resultType="com.springboot.ylw.entity.Category">
+        SELECT * FROM category WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO category (name, icon, sort, status) VALUES (#{name}, #{icon}, #{sort}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE category
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="icon != null">icon = #{icon},</if>
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM category WHERE id = #{id}
+    </delete>
+
+</mapper>

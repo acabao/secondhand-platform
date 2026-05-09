@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springboot.ylw.mapper.GoodsMapper">
+
+    <resultMap id="BaseResultMap" type="com.springboot.ylw.entity.Goods">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="price" property="price"/>
+        <result column="original_price" property="originalPrice"/>
+        <result column="images" property="images"/>
+        <result column="condition_level" property="conditionLevel"/>
+        <result column="status" property="status"/>
+        <result column="view_count" property="viewCount"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM goods WHERE id = #{id}
+    </select>
+
+    <select id="selectByPage" resultMap="BaseResultMap">
+        SELECT * FROM goods
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND title LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="categoryId != null">
+                AND category_id = #{categoryId}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="minPrice != null">
+                AND price &gt;= #{minPrice}
+            </if>
+            <if test="maxPrice != null">
+                AND price &lt;= #{maxPrice}
+            </if>
+            <if test="conditionLevels != null and conditionLevels.size() > 0">
+                AND condition_level IN
+                <foreach collection="conditionLevels" item="lv" open="(" separator="," close=")">
+                    #{lv}
+                </foreach>
+            </if>
+            <if test="sinceTime != null">
+                AND create_time &gt;= #{sinceTime}
+            </if>
+        </where>
+        <choose>
+            <when test="sortBy == 'priceAsc'">ORDER BY price ASC, id DESC</when>
+            <when test="sortBy == 'priceDesc'">ORDER BY price DESC, id DESC</when>
+            <when test="sortBy == 'viewsDesc'">ORDER BY view_count DESC, id DESC</when>
+            <otherwise>ORDER BY create_time DESC, id DESC</otherwise>
+        </choose>
+    </select>
+
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT * FROM goods WHERE user_id = #{userId} ORDER BY create_time DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO goods (user_id, category_id, title, description, price, original_price, images, condition_level, status)
+        VALUES (#{userId}, #{categoryId}, #{title}, #{description}, #{price}, #{originalPrice}, #{images}, #{conditionLevel}, 0)
+    </insert>
+
+    <update id="update">
+        UPDATE goods
+        <set>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="originalPrice != null">original_price = #{originalPrice},</if>
+            <if test="images != null">images = #{images},</if>
+            <if test="conditionLevel != null">condition_level = #{conditionLevel},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE goods SET status = #{status} WHERE id = #{id}
+    </update>
+
+    <update id="incrementViewCount">
+        UPDATE goods SET view_count = view_count + 1 WHERE id = #{id}
+    </update>
+
+</mapper>

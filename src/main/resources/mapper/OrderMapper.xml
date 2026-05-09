@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springboot.ylw.mapper.OrderMapper">
+
+    <resultMap id="BaseResultMap" type="com.springboot.ylw.entity.Order">
+        <id column="id" property="id"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="goods_id" property="goodsId"/>
+        <result column="buyer_id" property="buyerId"/>
+        <result column="seller_id" property="sellerId"/>
+        <result column="price" property="price"/>
+        <result column="address_id" property="addressId"/>
+        <result column="delivery_type" property="deliveryType"/>
+        <result column="pickup_point_id" property="pickupPointId"/>
+        <result column="meet_time" property="meetTime"/>
+        <result column="status" property="status"/>
+        <result column="remark" property="remark"/>
+        <result column="pay_type" property="payType"/>
+        <result column="expire_time" property="expireTime"/>
+        <result column="pay_time" property="payTime"/>
+        <result column="ship_time" property="shipTime"/>
+        <result column="complete_time" property="completeTime"/>
+        <result column="close_time" property="closeTime"/>
+        <result column="settle_time" property="settleTime"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="goods_title" property="goodsTitle"/>
+        <result column="goods_image" property="goodsImage"/>
+        <result column="buyer_name" property="buyerName"/>
+        <result column="seller_name" property="sellerName"/>
+        <result column="pickup_point_name" property="pickupPointName"/>
+        <result column="pickup_point_address" property="pickupPointAddress"/>
+    </resultMap>
+
+    <sql id="JoinedCols">
+        o.*,
+        g.title  AS goods_title,
+        g.images AS goods_image,
+        b.nickname AS buyer_name,
+        s.nickname AS seller_name,
+        pp.name    AS pickup_point_name,
+        pp.address AS pickup_point_address
+    </sql>
+
+    <sql id="JoinedFrom">
+        FROM `order` o
+        LEFT JOIN `goods` g ON g.id = o.goods_id
+        LEFT JOIN `user`  b ON b.id = o.buyer_id
+        LEFT JOIN `user`  s ON s.id = o.seller_id
+        LEFT JOIN `pickup_point` pp ON pp.id = o.pickup_point_id
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="JoinedCols"/>
+        <include refid="JoinedFrom"/>
+        WHERE o.id = #{id}
+    </select>
+
+    <select id="selectByOrderNo" resultMap="BaseResultMap">
+        SELECT <include refid="JoinedCols"/>
+        <include refid="JoinedFrom"/>
+        WHERE o.order_no = #{orderNo}
+    </select>
+
+    <select id="selectByBuyerId" resultMap="BaseResultMap">
+        SELECT <include refid="JoinedCols"/>
+        <include refid="JoinedFrom"/>
+        WHERE o.buyer_id = #{buyerId}
+        ORDER BY o.create_time DESC
+    </select>
+
+    <select id="selectBySellerId" resultMap="BaseResultMap">
+        SELECT <include refid="JoinedCols"/>
+        <include refid="JoinedFrom"/>
+        WHERE o.seller_id = #{sellerId}
+        ORDER BY o.create_time DESC
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="JoinedCols"/>
+        <include refid="JoinedFrom"/>
+        ORDER BY o.create_time DESC
+    </select>
+
+    <select id="selectExpired" resultMap="BaseResultMap">
+        SELECT o.* FROM `order` o
+        WHERE o.status = 0 AND o.expire_time IS NOT NULL AND o.expire_time &lt; #{now}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `order`
+        (order_no, goods_id, buyer_id, seller_id, price, address_id,
+         delivery_type, pickup_point_id, meet_time, remark, expire_time)
+        VALUES
+        (#{orderNo}, #{goodsId}, #{buyerId}, #{sellerId}, #{price}, #{addressId},
+         COALESCE(#{deliveryType}, 1), #{pickupPointId}, #{meetTime}, #{remark}, #{expireTime})
+    </insert>
+
+    <update id="updateStatus">
+        UPDATE `order` SET status = #{status} WHERE id = #{id}
+    </update>
+
+    <update id="markPaid">
+        UPDATE `order` SET status = 1, pay_type = #{payType}, pay_time = #{payTime}
+        WHERE id = #{id} AND status = 0
+    </update>
+
+    <update id="markShipped">
+        UPDATE `order` SET status = 2, ship_time = #{shipTime}
+        WHERE id = #{id} AND status = 1
+    </update>
+
+    <update id="markCompleted">
+        UPDATE `order` SET status = 3, complete_time = #{completeTime}, settle_time = #{settleTime}
+        WHERE id = #{id} AND status = 2
+    </update>
+
+    <update id="markClosed">
+        UPDATE `order` SET status = 4, close_time = #{closeTime}
+        WHERE id = #{id} AND status = 0
+    </update>
+
+    <update id="closeForRefund">
+        UPDATE `order` SET status = 4, close_time = #{closeTime}
+        WHERE id = #{id} AND status = 2
+    </update>
+
+</mapper>

@@ -1,0 +1,95 @@
+// ===========================================================
+// ER 图 总体（无属性版）
+// 整合：账号体系 / 商品交易 / 售后评价 / 社区运营
+// 渲染： dot -Kneato -Tpng -Gcharset=utf8 er_overall.dot -o er_overall.png
+// ===========================================================
+graph ER_Overall {
+    graph [fontname="Microsoft YaHei", layout=neato, overlap=false,
+           splines=true, sep="+18,18"];
+    node  [fontname="Microsoft YaHei", fontsize=12];
+    edge  [fontname="Microsoft YaHei", fontsize=11, len=1.6];
+
+    // ===== 实体（矩形）=====
+    node [shape=box, penwidth=1.6, width=1.4, height=0.6];
+    user     [label="用户"];
+    admin    [label="管理员"];
+    sms      [label="短信验证码"];
+    category [label="商品分类"];
+    goods    [label="商品"];
+    address  [label="收货地址"];
+    pickup   [label="自提点"];
+    ord      [label="订单"];
+    payment  [label="支付流水"];
+    refund   [label="退款申请"];
+    review   [label="交易评价"];
+    post     [label="互助帖"];
+    reply    [label="帖子回复"];
+    message  [label="私信"];
+    notice   [label="公告"];
+    banner   [label="轮播图"];
+
+    // ===== 关系（菱形）=====
+    node [shape=diamond, penwidth=1.6, width=1.2, height=0.7];
+    r_verify   [label="验证"];
+    r_manage   [label="管理"];
+    r_publish  [label="发布"];
+    r_belong   [label="属于"];
+    r_favorite [label="收藏"];
+    r_comment  [label="评论"];
+    r_own      [label="拥有"];
+    r_buy      [label="买入"];
+    r_sell     [label="卖出"];
+    r_makeord  [label="成单"];
+    r_ship     [label="邮寄至"];
+    r_self     [label="自提"];
+    r_pay      [label="支付"];
+    r_apply    [label="申请"];
+    r_submit   [label="买家提交"];
+    r_handle   [label="卖家处理"];
+    r_makerev  [label="产生"];
+    r_write    [label="撰写"];
+    r_recv_rv  [label="收到"];
+    r_relate   [label="关联"];
+    r_post     [label="发帖"];
+    r_contain  [label="包含"];
+    r_reply    [label="回帖"];
+    r_send     [label="发送"];
+    r_recv_msg [label="接收"];
+    r_pubntc   [label="发布公告"];
+    r_pubban   [label="发布轮播"];
+
+    // ===== 账号体系 =====
+    user  -- r_verify [label="1"]; r_verify -- sms  [label="N"];
+    admin -- r_manage [label="1"]; r_manage -- user [label="N"];
+
+    // ===== 商品与交易 =====
+    user     -- r_publish  [label="1"]; r_publish  -- goods    [label="N"];
+    goods    -- r_belong   [label="N"]; r_belong   -- category [label="1"];
+    user     -- r_favorite [label="M"]; r_favorite -- goods    [label="N"];
+    user     -- r_comment  [label="M"]; r_comment  -- goods    [label="N"];
+    user     -- r_own      [label="1"]; r_own      -- address  [label="N"];
+    user     -- r_buy      [label="1"]; r_buy      -- ord      [label="N"];
+    user     -- r_sell     [label="1"]; r_sell     -- ord      [label="N"];
+    goods    -- r_makeord  [label="1"]; r_makeord  -- ord      [label="N"];
+    address  -- r_ship     [label="1"]; r_ship     -- ord      [label="N"];
+    pickup   -- r_self     [label="1"]; r_self     -- ord      [label="N"];
+    ord      -- r_pay      [label="1"]; r_pay      -- payment  [label="N"];
+
+    // ===== 售后与评价 =====
+    ord   -- r_apply    [label="1"]; r_apply    -- refund [label="1"];
+    user  -- r_submit   [label="1"]; r_submit   -- refund [label="N"];
+    user  -- r_handle   [label="1"]; r_handle   -- refund [label="N"];
+    ord   -- r_makerev  [label="1"]; r_makerev  -- review [label="N"];
+    user  -- r_write    [label="1"]; r_write    -- review [label="N"];
+    user  -- r_recv_rv  [label="1"]; r_recv_rv  -- review [label="N"];
+    goods -- r_relate   [label="1"]; r_relate   -- review [label="N"];
+
+    // ===== 社区与运营 =====
+    user  -- r_post     [label="1"]; r_post     -- post    [label="N"];
+    post  -- r_contain  [label="1"]; r_contain  -- reply   [label="N"];
+    user  -- r_reply    [label="1"]; r_reply    -- reply   [label="N"];
+    user  -- r_send     [label="1"]; r_send     -- message [label="N"];
+    user  -- r_recv_msg [label="1"]; r_recv_msg -- message [label="N"];
+    admin -- r_pubntc   [label="1"]; r_pubntc   -- notice  [label="N"];
+    admin -- r_pubban   [label="1"]; r_pubban   -- banner  [label="N"];
+}

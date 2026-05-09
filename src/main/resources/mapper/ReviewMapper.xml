@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springboot.ylw.mapper.ReviewMapper">
+
+    <resultMap id="BaseResultMap" type="com.springboot.ylw.entity.Review">
+        <id column="id" property="id"/>
+        <result column="order_id" property="orderId"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="goods_id" property="goodsId"/>
+        <result column="from_user_id" property="fromUserId"/>
+        <result column="to_user_id" property="toUserId"/>
+        <result column="role" property="role"/>
+        <result column="item1_score" property="item1Score"/>
+        <result column="item2_score" property="item2Score"/>
+        <result column="item3_score" property="item3Score"/>
+        <result column="overall_score" property="overallScore"/>
+        <result column="content" property="content"/>
+        <result column="images" property="images"/>
+        <result column="auto_default" property="autoDefault"/>
+        <result column="create_time" property="createTime"/>
+        <result column="from_user_name" property="fromUserName"/>
+        <result column="from_user_avatar" property="fromUserAvatar"/>
+        <result column="goods_title" property="goodsTitle"/>
+        <result column="goods_image" property="goodsImage"/>
+    </resultMap>
+
+    <sql id="BaseCols">
+        r.*,
+        u.nickname AS from_user_name,
+        u.avatar   AS from_user_avatar,
+        g.title    AS goods_title,
+        g.images   AS goods_image
+    </sql>
+
+    <sql id="BaseFrom">
+        FROM review r
+        LEFT JOIN `user` u ON u.id = r.from_user_id
+        LEFT JOIN goods g ON g.id = r.goods_id
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO review
+          (order_id, order_no, goods_id, from_user_id, to_user_id, role,
+           item1_score, item2_score, item3_score, overall_score,
+           content, images, auto_default)
+        VALUES
+          (#{orderId}, #{orderNo}, #{goodsId}, #{fromUserId}, #{toUserId}, #{role},
+           #{item1Score}, #{item2Score}, #{item3Score}, #{overallScore},
+           #{content}, #{images}, #{autoDefault})
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="BaseCols"/>
+        <include refid="BaseFrom"/>
+        WHERE r.id = #{id}
+    </select>
+
+    <select id="selectByOrderAndRole" resultMap="BaseResultMap">
+        SELECT <include refid="BaseCols"/>
+        <include refid="BaseFrom"/>
+        WHERE r.order_id = #{orderId} AND r.role = #{role}
+        LIMIT 1
+    </select>
+
+    <select id="selectByGoodsId" resultMap="BaseResultMap">
+        SELECT <include refid="BaseCols"/>
+        <include refid="BaseFrom"/>
+        WHERE r.goods_id = #{goodsId} AND r.role = 0
+        ORDER BY r.create_time DESC
+    </select>
+
+    <select id="selectBySellerId" resultMap="BaseResultMap">
+        SELECT <include refid="BaseCols"/>
+        <include refid="BaseFrom"/>
+        WHERE r.to_user_id = #{sellerId} AND r.role = 0
+        ORDER BY r.create_time DESC
+    </select>
+
+    <select id="selectByToUser" resultMap="BaseResultMap">
+        SELECT <include refid="BaseCols"/>
+        <include refid="BaseFrom"/>
+        WHERE r.to_user_id = #{toUserId}
+        ORDER BY r.create_time DESC
+    </select>
+
+    <select id="selectByFromUser" resultMap="BaseResultMap">
+        SELECT <include refid="BaseCols"/>
+        <include refid="BaseFrom"/>
+        WHERE r.from_user_id = #{fromUserId}
+        ORDER BY r.create_time DESC
+    </select>
+
+    <!-- 找出已完成超过 15 天、双向都还没评价全的订单 -->
+    <select id="selectOverdueNoReview" resultType="map">
+        SELECT o.id AS orderId, o.order_no AS orderNo, o.goods_id AS goodsId,
+               o.buyer_id AS buyerId, o.seller_id AS sellerId,
+               o.complete_time AS completeTime,
+               (SELECT COUNT(*) FROM review WHERE order_id = o.id AND role = 0) AS buyerReviewed,
+               (SELECT COUNT(*) FROM review WHERE order_id = o.id AND role = 1) AS sellerReviewed
+        FROM `order` o
+        WHERE o.status = 3
+          AND o.complete_time IS NOT NULL
+          AND o.complete_time &lt; DATE_SUB(NOW(), INTERVAL 15 DAY)
+        HAVING buyerReviewed = 0 OR sellerReviewed = 0
+    </select>
+
+</mapper>

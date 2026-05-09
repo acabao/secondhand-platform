@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springboot.ylw.mapper.MessageMapper">
+
+    <resultMap id="BaseResultMap" type="com.springboot.ylw.entity.Message">
+        <id column="id" property="id"/>
+        <result column="from_id" property="fromId"/>
+        <result column="to_id" property="toId"/>
+        <result column="goods_id" property="goodsId"/>
+        <result column="content" property="content"/>
+        <result column="is_read" property="isRead"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <resultMap id="InboxResultMap" type="com.springboot.ylw.entity.Message" extends="BaseResultMap">
+        <result column="unread_count" property="unreadCount"/>
+    </resultMap>
+
+    <!-- 每个发件人只返回最新一条，附带未读数 -->
+    <select id="countUnread" resultType="int">
+        SELECT COUNT(*) FROM message WHERE to_id = #{userId} AND is_read = 0
+    </select>
+
+    <select id="selectInbox" resultMap="InboxResultMap">
+        SELECT m.id, m.from_id, m.to_id, m.goods_id, m.content, m.is_read, m.create_time,
+               (SELECT COUNT(*) FROM message
+                WHERE from_id = m.from_id AND to_id = #{toId} AND is_read = 0) AS unread_count
+        FROM message m
+        INNER JOIN (
+            SELECT from_id, MAX(create_time) AS max_time
+            FROM message
+            WHERE to_id = #{toId}
+            GROUP BY from_id
+        ) latest ON m.from_id = latest.from_id AND m.create_time = latest.max_time
+        WHERE m.to_id = #{toId}
+        ORDER BY m.create_time DESC
+    </select>
+
+    <select id="selectByToId" resultMap="BaseResultMap">
+        SELECT * FROM message WHERE to_id = #{toId} ORDER BY create_time DESC
+    </select>
+
+    <select id="selectConversation" resultMap="BaseResultMap">
+        SELECT * FROM message
+        WHERE (from_id = #{userId1} AND to_id = #{userId2})
+           OR (from_id = #{userId2} AND to_id = #{userId1})
+        ORDER BY create_time ASC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO message (from_id, to_id, goods_id, content) VALUES (#{fromId}, #{toId}, #{goodsId}, #{content})
+    </insert>
+
+    <update id="markRead">
+        UPDATE message SET is_read = 1 WHERE from_id = #{fromId} AND to_id = #{toId}
+    </update>
+
+</mapper>
