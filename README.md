@@ -1,12 +1,14 @@
 # 二手商品交易平台（后端）
 
-校园/社区场景的二手交易平台，包含商品发布、订单、支付、退款、评价、私信、社区帖、AI 客服等功能。
+校园/社区场景的二手交易平台，提供商品发布、订单交易、支付、退款仲裁、双向评价、实时私信、社区帖、AI 客服等完整闭环；面向用户端与管理端两类用户。
+
+> 前端仓库：[acabao/secondhand-platform-front](https://github.com/acabao/secondhand-platform-front)（Vue 3 + Vite + Element Plus）
 
 ## 技术栈
 
 - **后端**：Spring Boot 2.6 / MyBatis / MySQL 8 / Redis / WebSocket / JWT / Hutool
 - **第三方**：阿里云 OSS（图片存储）、通义千问 DashScope（AI 客服）
-- **前端**：Vue 3 + Vite + Element Plus + Pinia（独立仓库）
+- **前端**：Vue 3 + Vite + Element Plus + Pinia（[独立仓库](https://github.com/acabao/secondhand-platform-front)）
 
 ## 快速启动
 
@@ -61,6 +63,11 @@ Nginx 需配置：
 | 私信 | WebSocket 实时推送，离线落库 |
 | 公告 | 管理端发布，首页弹窗 |
 | AI 客服 | 通义千问 qwen-turbo |
+
+## 相关仓库
+
+- 后端 (本仓库)：https://github.com/acabao/secondhand-platform
+- 前端 (Vue 3)：https://github.com/acabao/secondhand-platform-front
 
 ## 许可证
 MIT
